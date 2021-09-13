@@ -9,11 +9,25 @@
 //! [reset]: struct.Counter.html#method.reset
 
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::{env, near_bindgen, ext_contract, Promise, PromiseResult};
+use near_sdk::{env, ext_contract, near_bindgen};
 
 near_sdk::setup_alloc!();
 
-const FIRST_COUNTER_CONTRACT: &str = "dev-1629132107910-66952924033593";
+const TEAM_MANAGER_CONTRACT_ID: &str = "fayyr100.testnet";
+
+#[ext_contract(ext_team_manager)]
+pub trait ExtCounter {
+    fn assign_to_team(&mut self);
+    fn remove_from_team(&mut self);
+    fn reset_teams(&mut self);
+}
+
+#[ext_contract(ext_self)]
+pub trait ExtThis {
+    fn on_assign_to_team(&self);
+    fn on_remove_from_team(&self);
+    fn on_reset_teams(&self);
+}
 
 // add the following attributes to prepare your code for serialization and invocation on the blockchain
 // More built-in Rust attributes here: https://doc.rust-lang.org/reference/attributes.html#built-in-attributes-index
@@ -23,18 +37,6 @@ pub struct Counter {
     // See more data types at https://doc.rust-lang.org/book/ch03-02-data-types.html
     val: i8, // i8 is signed. unsigned integers are also available: u8, u16, u32, u64, u128
 }
-
-#[ext_contract(counter)]
-pub trait ExtCouner {
-   	fn get_num(&self);
-}
-
-#[ext_contract(ext_self)]
-pub trait ExtThis {
-    fn on_get_num(&mut self, #[callback] num: i8);
-    fn on_increment_with_bool_response(&self) -> bool;
-}
-
 
 #[near_bindgen]
 impl Counter {
@@ -62,40 +64,29 @@ impl Counter {
     /// ```bash
     /// near call counter.YOU.testnet increment --accountId donation.YOU.testnet
     /// ```
-    pub fn increment(&mut self) -> Promise {
+    pub fn increment(&mut self) {
         // note: adding one like this is an easy way to accidentally overflow
         // real smart contracts will want to have safety checks
         // e.g. self.val = i8::wrapping_add(self.val, 1);
         // https://doc.rust-lang.org/std/primitive.i8.html#method.wrapping_add
-
-        counter::get_num(&FIRST_COUNTER_CONTRACT, 0, 25_000_000_000_000)
-            .then(ext_self::on_get_num(&env::current_account_id(), 0, 25_000_000_000_000))
-    }
-
-    pub fn increment_with_bool_response(&mut self) -> Promise {
-        self
-        .increment()
-        .then(ext_self::on_increment_with_bool_response(&env::current_account_id(), 0, 25_000_000_000_000))
-    }
-
-    #[private]
-    pub fn on_increment_with_bool_response(&self) -> bool{
-        assert_eq!(env::promise_results_count(), 1, "Contract expected a result on the callback");
-
-        match env::promise_result(0) {
-            PromiseResult::Successful(_) => true,
-            _ => false,
-        }
-    }
-
-    #[private]
-    pub fn on_get_num(&mut self, #[callback] num: i8) {
-        assert!(num > self.val, "Please increment first counter now");
-
         self.val += 1;
-        let log_message = format!("Increased number to {}", self.val);
+        let log_message = format!("Increased counter to {}", self.val);
         env::log(log_message.as_bytes());
-        after_counter_change();
+
+        // Invoke a method on another contract
+        // This will send an ActionReceipt to the shard where the contract lives.
+        ext_team_manager::assign_to_team(
+            &TEAM_MANAGER_CONTRACT_ID, // contract account id
+            0, // yocto NEAR to attach
+            25_000_000_000_000 // gas to attach
+        )
+        // After the smart contract method finishes a DataReceipt will be sent back
+        // .then registers a method to handle that incoming DataReceipt
+        .then(ext_self::on_assign_to_team(
+            &env::current_account_id(), // this contract's account id
+            0, // yocto NEAR to attach to the callback
+            25_000_000_000_000 // gas to attach to the callback
+        ));
     }
 
     /// Decrement (subtract from) the counter.
@@ -112,9 +103,23 @@ impl Counter {
         // e.g. self.val = i8::wrapping_sub(self.val, 1);
         // https://doc.rust-lang.org/std/primitive.i8.html#method.wrapping_sub
         self.val -= 1;
-        let log_message = format!("Decreased number to {}", self.val);
+        let log_message = format!("Decreased counter to {}", self.val);
         env::log(log_message.as_bytes());
-        after_counter_change();
+
+        // Invoke a method on another contract
+        // This will send an ActionReceipt to the shard where the contract lives.
+        ext_team_manager::remove_from_team(
+            &TEAM_MANAGER_CONTRACT_ID, // contract account id
+            0, // yocto NEAR to attach
+            25_000_000_000_000 // gas to attach
+        )
+        // After the smart contract method finishes a DataReceipt will be sent back
+        // .then registers a method to handle that incoming DataReceipt
+        .then(ext_self::on_remove_from_team(
+            &env::current_account_id(), // this contract's account id
+            0, // yocto NEAR to attach to the callback
+            25_000_000_000_000 // gas to attach to the callback
+        ));
     }
 
     /// Reset to zero.
@@ -122,16 +127,39 @@ impl Counter {
         self.val = 0;
         // Another way to log is to cast a string into bytes, hence "b" below:
         env::log(b"Reset counter to zero");
+
+        // Invoke a method on another contract
+        // This will send an ActionReceipt to the shard where the contract lives.
+        ext_team_manager::reset_teams(
+            &TEAM_MANAGER_CONTRACT_ID, // contract account id
+            0, // yocto NEAR to attach
+            25_000_000_000_000 // gas to attach
+        )
+        // After the smart contract method finishes a DataReceipt will be sent back
+        // .then registers a method to handle that incoming DataReceipt
+        .then(ext_self::on_reset_teams(
+            &env::current_account_id(), // this contract's account id
+            0, // yocto NEAR to attach to the callback
+            25_000_000_000_000 // gas to attach to the callback
+        ));
+    }
+
+    pub fn on_assign_to_team(&self) {
+        let log_message = format!("Successfully assigned member to a team!");
+        env::log(log_message.as_bytes());
+    }
+    
+    pub fn on_remove_from_team(&self) {
+        let log_message = format!("Successfully removed member from a team!");
+        env::log(log_message.as_bytes());
+    }
+    
+    pub fn on_reset_teams(&self) {
+        let log_message = format!("Successfully reset the teams!");
+        env::log(log_message.as_bytes());
     }
 }
 
-// unlike the struct's functions above, this function cannot use attributes #[derive(…)] or #[near_bindgen]
-// any attempts will throw helpful warnings upon 'cargo build'
-// while this function cannot be invoked directly on the blockchain, it can be called from an invoked function
-fn after_counter_change() {
-    // show helpful warning that i8 (8-bit signed integer) will overflow above 127 or below -128
-    env::log("Make sure you don't overflow, my friend.".as_bytes());
-}
 
 /*
  * the rest of this file sets up unit tests
