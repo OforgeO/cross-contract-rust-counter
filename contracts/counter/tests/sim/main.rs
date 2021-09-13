@@ -4,7 +4,7 @@ use near_sdk_sim::{call, view, deploy, init_simulator, ContractAccount, UserAcco
 use rust_counter_tutorial::CounterContract;
 
 near_sdk_sim::lazy_static_include::lazy_static_include_bytes! {
-    COUNTER_BYTES => "../out/main.wasm",
+    COUNTER_BYTES => "../../out/counter.wasm",
 }
 
 pub const DEFAULT_GAS: u64 = 300_000_000_000_000;
