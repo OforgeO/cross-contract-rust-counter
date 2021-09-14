@@ -158,7 +158,7 @@ mod tests {
     fn remove_from_team() {
         let context = VMContextBuilder::new();
         testing_env!(context.build());
-        let mut contract = TeamManager { val: 0 };
+        let mut contract = TeamManager { team_a: 0, team_b: 0 };
         contract.remove_from_team();
         println!("Value after removing from team: {}", contract.get_team_a());
         // confirm that we received -1 when calling get_team_a
@@ -169,7 +169,7 @@ mod tests {
     fn assign_and_reset() {
         let context = VMContextBuilder::new();
         testing_env!(context.build());
-        let mut contract = TeamManager { val: 0 };
+        let mut contract = TeamManager { team_a: 0, team_b: 0 };
         contract.assign_to_team();
         contract.reset_teams();
         println!("Value after reset: {}", contract.get_team_a());
