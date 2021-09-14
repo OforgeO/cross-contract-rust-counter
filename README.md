@@ -1,20 +1,20 @@
 Counter with simple Cross-Contract calls in Rust
 =================================
 
-- Deploy the modified counter found in the contract folder and specify `TEAM_MANAGER_CONTRACT_ID`.
-- Deploy second contract found in the team-manager folder.
+These contracts form a basic example for performing cross-contract calls using the classic [Rust counter example](https://github.com/near-examples/rust-counter). 
+
+## Instructions
+
+- Deploy the modified [`counter`](./contracts/counter) found in the contract folder and specify `TEAM_MANAGER_CONTRACT_ID`.
+- Deploy second contract found in the [`team-manager`](./contracts/team-manager) folder.
 - The team manager contract consists of two teams - team A and team B. When you incremement the counter, the team with the least amount of players will get assigned a member. 
 - When you decremement the counter, the team with the most amount of players will have a member removed. 
 - If there is a tie, team A will be prioritized. 
 - When you reset the counter, both teams will be reset to zero.
 
-Original RUST-COUNTER readme:
+Original [Rust counter](https://github.com/near-examples/rust-counter) documentation:
 
 <!-- MAGIC COMMENT: DO NOT DELETE! Everything above this line is hidden on NEAR Examples page -->
-
-## Description
-
-These contracts form a basic example for performing cross-contract calls using the classic rust counter example. 
 
 ## Setup
 Install dependencies:
