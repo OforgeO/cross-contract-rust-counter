@@ -1,35 +1,22 @@
-Cross-Contract Counter example in Rust
+Counter with simple Cross-Contract calls in Rust
 =================================
 
-- Deploy first [original rust-counter contract](https://examples.near.org/rust-counter).
-- Deploy second counter using this contract and specify `FIRST_COUNTER_CONTRACT`
-- Second counter can't be greater then the first one.
+These contracts form a basic example for performing cross-contract calls using the classic [Rust counter example](https://github.com/near-examples/rust-counter). 
 
-Run `increment_with_bool_response` method on the second contract to receive true/false status if increment was properly performed.
+## Instructions
 
-Original RUST-COUNTER readme:
+- Deploy the modified [`counter`](./contracts/counter) found in the contract folder and specify `TEAM_MANAGER_CONTRACT_ID`.
+- Deploy second contract found in the [`team-manager`](./contracts/team-manager) folder.
+- The team manager contract consists of two teams - team A and team B. When you incremement the counter, the team with the least amount of players will get assigned a member. 
+- When you decremement the counter, the team with the most amount of players will have a member removed. 
+- If there is a tie, team A will be prioritized. 
+- When you reset the counter, both teams will be reset to zero.
 
-
-[![Open in Gitpod!](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/near-examples/rust-counter)
+Original [Rust counter](https://github.com/near-examples/rust-counter) documentation:
 
 <!-- MAGIC COMMENT: DO NOT DELETE! Everything above this line is hidden on NEAR Examples page -->
 
-## Description
-
-This contract implements simple counter backed by storage on blockchain.
-Contract in `contract/src/lib.rs` provides methods to increment / decrement counter and get it's current value or reset.
-
-Plus and minus buttons increase and decrease value correspondingly. When button L is toggled, a little light turns on, just for fun. RS button is for reset. LE and RE buttons to let the robot wink at you.
-
-## To Run
-Open in the Gitpod link above or clone the repository.
-
-```
-git clone https://github.com/near-examples/rust-counter
-```
-
-
-## Setup [Or skip to Login if in Gitpod](#login)
+## Setup
 Install dependencies:
 
 ```
@@ -70,42 +57,55 @@ If you need to install `near-cli`:
 npm install near-cli -g
 ```
 
-## Login
-If you do not have a NEAR account, please create one with [NEAR Wallet](https://wallet.testnet.near.org).
+## To Run
+Clone the repository.
 
-In the project root, login with `near-cli` by following the instructions after this command:
+```
+git clone https://github.com/near-examples/cross-contract-rust-counter.git
+```
+
+## To Build
+When in the root folder, you can build both contracts which will create the wasms to `out/counter.wasm` and `out/team-manager.wasm`
+
+```
+yarn build
+```
+
+## To Test
+When in the root folder, you can run unit tests for both contracts using the following command.
+
+```
+yarn test:cargo
+```
+
+## To Deploy
+After building, you can deploy the contracts to a dev account using the following commands:
+
+
+```
+near dev-deploy --wasmFile out/counter.wasm
+```
+And
+
+```
+near dev-deploy --wasmFile out/team-manager.wasm
+```
+
+To deploy to an existing account, login with `near-cli` by following the instructions after this command:
 
 ```
 near login
 ```
 
-Modify the top of `src/config.js`, changing the `CONTRACT_NAME` to be the NEAR account that was just used to log in.
-
-```javascript
-…
-const CONTRACT_NAME = 'YOUR_ACCOUNT_NAME_HERE'; /* TODO: fill this in! */
-…
+You can then deploy to the logged in account via the following: 
 ```
-
-Start the example!
+near deploy --accountId YOUR_ACCOUNT_ID --wasmFile out/counter.wasm
+```
+And
 
 ```
-yarn start
+near deploy --accountId YOUR_ACCOUNT_ID --wasmFile out/team-manager.wasm
 ```
-
-## To Test
-
-```
-cd contract
-cargo test -- --nocapture
-```
-
-## To Explore
-
-- `contract/src/lib.rs` for the contract code
-- `src/index.html` for the front-end HTML
-- `src/main.js` for the JavaScript front-end code and how to integrate contracts
-- `src/test.js` for the JS tests for the contract
 
 ## To Build the Documentation
 
